@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Forge — QR Code Generator</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">⬛</span>
+      <span class="logo-text">QR <strong>Forge</strong></span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <p class="hero-label">Generate · Customize · Download</p>
+    <h1 class="hero-title">Build any QR Code<br /><em>in seconds.</em></h1>
+    <p class="hero-sub">Text, URLs, UPI payments — one tool to encode them all.</p>
+  </section>
+
+  <main class="app-container">
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="generate">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Generate
+      </button>
+      <button class="tab-btn" data-tab="scan">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scan QR
+      </button>
+    </div>
+
+    <!-- GENERATE PANEL -->
+    <div class="panel" id="generatePanel">
+      <div class="card input-card">
+
+        <!-- Type Selector: Text | URL | UPI -->
+        <div class="form-group">
+          <label class="form-label">Input Type</label>
+          <div class="type-selector">
+            <button class="type-btn active" data-type="text">
+              <span class="type-icon">📝</span>Text
+            </button>
+            <button class="type-btn" data-type="url">
+              <span class="type-icon">🔗</span>URL
+            </button>
+            <button class="type-btn" data-type="image">
+              <span class="type-icon">🖼️</span>Image
+            </button>
+            <button class="type-btn" data-type="upi">
+              <span class="type-icon">💳</span>UPI Pay
+            </button>
+          </div>
+        </div>
+
+        <div id="inputArea">
+
+          <!-- Text / URL -->
+          <div class="field-group" id="field-text">
+            <div class="form-group">
+              <label class="form-label" for="mainInput">Your Content</label>
+              <textarea class="form-input textarea" id="mainInput" placeholder="Type or paste anything here..." rows="3"></textarea>
+              <span class="char-counter"><span id="charCount">0</span> characters</span>
+            </div>
+          </div>
+
+
+          <!-- Image Link Fields -->
+          <div class="field-group hidden" id="field-image">
+            <div class="img-type-tabs">
+              <button class="img-tab active" data-imgtab="url">🔗 Paste Image URL</button>
+              <button class="img-tab" data-imgtab="upload">📁 Upload from Device</button>
+            </div>
+            <div id="imgUrlPanel">
+              <div class="form-group">
+                <label class="form-label" for="imageUrl">Image URL <span class="required">*</span></label>
+                <input class="form-input" id="imageUrl" type="url" placeholder="https://example.com/photo.jpg" autocomplete="off" />
+                <span class="field-hint">Direct link to any JPG, PNG, GIF, WEBP, SVGu2026</span>
+              </div>
+              <div class="img-live-preview hidden" id="imgLivePreviewWrap">
+                <div class="img-live-label">Preview</div>
+                <img id="imgLivePreview" src="" alt="Preview" />
+                <div class="img-live-url" id="imgLiveUrl"></div>
+              </div>
+              <div class="img-error hidden" id="imgError">u26a0ufe0f Could not load image u2014 check the URL</div>
+            </div>
+            <div class="hidden" id="imgUploadPanel">
+              <label class="img-upload-drop" id="imgUploadDrop">
+                <input type="file" id="imgUploadFile" accept="image/*" style="display:none" />
+                <span class="img-upload-icon">📂</span>
+                <p>Drop image here or <strong>click to browse</strong></p>
+                <span class="upload-hint">JPG, PNG, GIF, WEBP, SVG</span>
+              </label>
+              <div class="img-uploaded-preview hidden" id="imgUploadedPreview">
+                <img id="imgUploadedImg" src="" alt="Uploaded" />
+                <div class="img-upload-info">
+                  <span class="img-upload-name" id="imgUploadName"></span>
+                  <span class="img-upload-size" id="imgUploadSize"></span>
+                  <button class="logo-remove-btn" id="imgUploadRemove">u2715 Remove</button>
+                </div>
+              </div>
+              <div class="img-note">
+                <span>u2139ufe0f</span>
+                <span>Image is embedded as <strong>base64</strong> in the QR. Keep files small (under 100 KB) for reliable scanning.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPI Fields -->
+          <div class="field-group hidden" id="field-upi">
+            <div class="upi-banner">
+              <span class="upi-badge">₹ UPI Pay</span>
+              <span class="upi-hint">Scannable by PhonePe, GPay, Paytm  all UPI apps</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="upiId">UPI ID <span class="required">*</span></label>
+              <input class="form-input" id="upiId" type="text" placeholder="yourname@upi or 9876543210@paytm" autocomplete="off" />
+              <span class="field-hint">e.g. name@okicici · 9876543210@ybl · merchant@kotak</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="upiName">Payee Name <span class="required">*</span></label>
+              <input class="form-input" id="upiName" type="text" placeholder="Full name of the recipient" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="upiAmount">Amount (₹) <span class="optional-tag">optional</span></label>
+                <input class="form-input" id="upiAmount" type="number" placeholder="0.00" min="0" step="0.01" />
+                <span class="field-hint">Leave blank for any amount</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="upiCurrency">Currency</label>
+                <select class="form-input form-select" id="upiCurrency">
+                  <option value="INR">INR — ₹</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="upiNote">Transaction Note <span class="optional-tag">optional</span></label>
+              <input class="form-input" id="upiNote" type="text" placeholder="e.g. Payment for invoice #123" />
+            </div>
+            <div class="upi-preview" id="upiPreview">
+              <span class="upi-preview-label">UPI String Preview</span>
+              <code class="upi-preview-code" id="upiPreviewCode">upi://pay?…</code>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Logo / Photo Overlay -->
+        <div class="form-group logo-section">
+          <label class="form-label">
+            Logo / Photo Overlay
+            <span class="optional-badge">optional</span>
+          </label>
+          <div class="logo-upload-area" id="logoUploadArea">
+            <input type="file" id="logoFile" accept="image/*" style="display:none" />
+            <div class="logo-upload-inner" id="logoUploadInner">
+              <span class="logo-upload-icon">🖼️</span>
+              <span class="logo-upload-text">Click or drop image to embed in QR center</span>
+              <span class="logo-upload-hint">PNG, JPG, SVG — max ~35% of QR size</span>
+            </div>
+            <div class="logo-preview-wrap hidden" id="logoPreviewWrap">
+              <img class="logo-preview-img" id="logoPreviewImg" src="" alt="Logo" />
+              <div class="logo-preview-meta">
+                <span class="logo-filename" id="logoFilename"></span>
+                <button class="logo-remove-btn" id="logoRemoveBtn" title="Remove logo">✕ Remove</button>
+              </div>
+            </div>
+          </div>
+          <div class="logo-size-row hidden" id="logoSizeRow">
+            <label class="mini-label">Logo Size: <span id="logoSizeVal">22</span>%</label>
+            <input type="range" id="logoSize" min="10" max="35" step="1" value="22" class="range-slider" />
+          </div>
+        </div>
+
+        <!-- Customization -->
+        <div class="form-group">
+          <label class="form-label">Customization</label>
+          <div class="customize-row">
+            <div class="color-group">
+              <label class="mini-label">QR Color</label>
+              <div class="color-wrap">
+                <input type="color" id="qrColor" value="#000000" class="color-picker" />
+                <span class="color-preview" id="qrColorPreview" style="background:#000000"></span>
+              </div>
+            </div>
+            <div class="color-group">
+              <label class="mini-label">Background</label>
+              <div class="color-wrap">
+                <input type="color" id="bgColor" value="#ffffff" class="color-picker" />
+                <span class="color-preview" id="bgColorPreview" style="background:#ffffff"></span>
+              </div>
+            </div>
+            <div class="size-group">
+              <label class="mini-label">Size: <span id="sizeVal">256</span>px</label>
+              <input type="range" id="qrSize" min="128" max="512" step="32" value="256" class="range-slider" />
+            </div>
+            <div class="size-group">
+              <label class="mini-label">Error Correction</label>
+              <select class="form-input form-select mini-select" id="errorLevel">
+                <option value="L">Low (7%)</option>
+                <option value="M" selected>Medium (15%)</option>
+                <option value="Q">High (25%)</option>
+                <option value="H">Max (30%)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="generateBtn">
+          <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Generate QR Code
+        </button>
+
+      </div>
+
+      <!-- QR Output Card -->
+      <div class="card output-card" id="outputCard">
+        <div class="output-placeholder" id="placeholder">
+          <div class="placeholder-grid">
+            <div></div><div></div><div></div>
+            <div></div><div></div><div></div>
+            <div></div><div></div><div></div>
+          </div>
+          <p>Your QR code will appear here</p>
+        </div>
+
+        <div class="qr-result hidden" id="qrResult">
+          <div class="qr-canvas-wrap" id="qrcode"></div>
+          <div class="qr-meta">
+            <span class="qr-type-badge" id="qrTypeBadge">TEXT</span>
+            <span class="qr-size-info" id="qrSizeInfo">256 × 256</span>
+          </div>
+          <div class="download-row">
+            <button class="btn btn-download" id="downloadPNG">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download PNG
+            </button>
+            <button class="btn btn-outline" id="copyBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SCAN PANEL -->
+    <div class="panel hidden" id="scanPanel">
+      <div class="card scan-card">
+        <h2 class="scan-title">Scan a QR Code</h2>
+        <p class="scan-sub">Point your camera at any QR code to decode it instantly.</p>
+
+        <div class="scan-modes">
+          <button class="tab-btn active" id="cameraMode">📷 Use Camera</button>
+          <button class="tab-btn" id="uploadMode">🖼 Upload Image</button>
+        </div>
+
+        <div id="cameraSection">
+          <div class="video-wrap" id="videoWrap">
+            <video id="scanVideo" autoplay muted playsinline></video>
+            <div class="scan-overlay">
+              <div class="scan-frame">
+                <div class="corner tl"></div>
+                <div class="corner tr"></div>
+                <div class="corner bl"></div>
+                <div class="corner br"></div>
+                <div class="scan-line"></div>
+              </div>
+            </div>
+          </div>
+          <div class="scan-controls">
+            <button class="btn btn-primary" id="startScanBtn">Start Camera</button>
+            <button class="btn btn-outline hidden" id="stopScanBtn">Stop Camera</button>
+          </div>
+        </div>
+
+        <div class="hidden" id="uploadSection">
+          <label class="upload-drop" id="uploadDrop">
+            <input type="file" id="uploadFile" accept="image/*" style="display:none" />
+            <div class="upload-icon">📂</div>
+            <p>Drop an image here or <strong>click to browse</strong></p>
+            <span class="upload-hint">PNG, JPG, GIF, WEBP</span>
+          </label>
+        </div>
+
+        <div class="scan-result hidden" id="scanResult">
+          <div class="scan-result-header">
+            <span class="scan-ok">✓ QR Detected</span>
+          </div>
+          <div class="scan-result-text" id="scanText"></div>
+          <!-- UPI scan breakdown -->
+          <div class="upi-scan-breakdown hidden" id="upiScanBreakdown"></div>
+          <div class="scan-actions">
+            <button class="btn btn-primary hidden" id="scanOpenBtn">Open URL</button>
+            <button class="btn btn-outline" id="scanCopyBtn">Copy Text</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <p>Built with ❤️ using <span>QRCode.js</span> + <span>ZXing</span> · No data leaves your browser</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
